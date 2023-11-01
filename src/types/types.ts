@@ -13,7 +13,7 @@ export type ProductType = {
   desc?: string;
   img?: string;
   price: number;
-  options?: { title: string; additionalPrice: Number }[];
+  options?: { title: string; additionalPrice: number }[];
 };
 
 export type OrderType = {
