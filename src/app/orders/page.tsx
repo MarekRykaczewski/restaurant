@@ -3,9 +3,10 @@
 import { OrderType } from "@/types/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import React from "react";
+import { toast } from "react-toastify";
 
 const OrdersPage = () => {
   const { data: session, status } = useSession();
@@ -16,7 +17,7 @@ const OrdersPage = () => {
     router.push("/");
   }
 
-  const { isPending, error, data } = useQuery({
+  const { isLoading, error, data } = useQuery({
     queryKey: ["orders"],
     queryFn: () =>
       fetch("http://localhost:3000/api/orders").then((res) => res.json()),
@@ -27,7 +28,7 @@ const OrdersPage = () => {
   const mutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) => {
       return fetch(`http://localhost:3000/api/orders/${id}`, {
-        method: "PUT",
+        method:"PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -39,15 +40,17 @@ const OrdersPage = () => {
     },
   });
 
-  if (isPending || status === "loading") return "Loading...";
-
   const handleUpdate = (e: React.FormEvent<HTMLFormElement>, id: string) => {
+    e.preventDefault();
     const form = e.target as HTMLFormElement;
     const input = form.elements[0] as HTMLInputElement;
     const status = input.value;
 
     mutation.mutate({ id, status });
+    toast.success("The order status has been changed!")
   };
+
+  if (isLoading || status === "loading") return "Loading...";
 
   return (
     <div className="p-4 lg:px-20 xl:px-40">
@@ -63,7 +66,7 @@ const OrdersPage = () => {
         </thead>
         <tbody>
           {data.map((item: OrderType) => (
-            <tr className="text-xm md:text-base bg-red-50" key={item.id}>
+            <tr className={`${item.status !== "delivered" && "bg-red-50"}`} key={item.id}>
               <td className="hidden md:block py-6 px-1">{item.id}</td>
               <td className="py-6 px-1">
                 {item.createdAt.toString().slice(0, 10)}
